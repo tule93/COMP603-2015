@@ -1,0 +1,50 @@
+1)	Identify which files/functions are responsible for each phase in the compiler source (scan/lex/tokenize, parse, AST, optimization, code generation).
+	>	scan
+			- win32/lib/user32.def 
+			- win32/include/winapi/winuser.h 
+			- win32/include/winapi/wincon.h 
+			- tcccoff.c
+			- tccelf.c 
+			- tccpp.c 
+			- win32/include/winapi/winbase.h 
+			- win32/include/winapi/wingdi.h 
+	>	lex
+			- stab.def 
+			- win32/include/winapi/winnls.h 
+	>	tokenize
+			- tccpp.c 
+			- tcc.h 
+			- tccasm.c 
+			- libtcc.c 
+			- tccgen.c
+			- i386-asm.c 
+	>	parse
+			- i386-asm.c
+				+ static int asm_parse_reg(void)
+				+ static void parse_operand(TCCState *s1, Operand *op)
+			- tccpp.c 
+			- tccasm.c 
+			- tccgen.c 
+			- tcc.h 
+			- tcc.c 
+			- libtcc.c
+			- tccelf.c 
+	>	AST
+			- configure 
+	>	optimization
+			- il-gen.c 
+			- i386-gen.c 
+			- x86_64-gen.c 
+			- c67-gen.c 
+			- arm-gen.c 
+			- tccgen.c 
+	>	code generation: 
+			- il-gen.c
+			- i386-gen.c
+			- x86_64-gen.c
+			- arm-gen.c
+			- c67-gen.c
+
+2)	What was the most ridiculous thing you found? (funny comments? awful code?)
+	>	There are different compiler sources for different systems (x64, x86, ARM, etc...)
+	>	Optimization is only done at the expression level
