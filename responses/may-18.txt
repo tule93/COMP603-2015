@@ -1,6 +1,7 @@
 What does it mean for two sets to be disjoint?
 
-
+two sets separate from one set (not merging)
 
 What is the union of two sets?
 
+two sets merge together
