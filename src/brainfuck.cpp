@@ -101,23 +101,45 @@ class Program : public Container {
         }
 };
 
+
+
+
 /**
  * Read in the file by recursive descent.
  * Modify as necessary and add whatever functions you need to get things done.
  */
-void parse(fstream & file, Container * container) {
-    char c;
-    // How to peek at the next character
-    c = (char)file.peek();
-    // How to print out that character
-    cout << c;
-    // How to read a character from the file and advance to the next character
-    file >> c;
-    // How to print out that character
-    cout << c;
-    // How to insert a node into the container.
-    container->children.push_back(new CommandNode(c));
+
+void parse(fstream & file, Container * container) {   
+ //   char c;
+ //   // How to peek at the next character
+ //   c = (char)file.peek();
+ //   // How to print out that character
+ //   cout << c;
+ //   // How to read a character from the file and advance to the next character
+ //   file >> c;
+ //   // How to print out that character
+ //   cout << c;
+ //   // How to insert a node into the container.
+ //   container->children.push_back(new CommandNode(c));
+	char c;
+	Container * temp;
+	while(file >> c){
+		if(c == '['){
+			temp = new Loop;
+			container->children.push_back(temp);
+			parse(file, temp);
+		}
+		else if(c == ']'){
+			break;
+		}
+		else{
+			container->children.push_back(new CommandNode(c));
+		}
+	}
+
 }
+
+
 
 /**
  * A printer for Brainfuck abstract syntax trees.
