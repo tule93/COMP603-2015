@@ -24,7 +24,8 @@ typedef enum {
     SHIFT_LEFT, // <
     SHIFT_RIGHT, // >
     INPUT, // ,
-    OUTPUT // .
+    OUTPUT, // .
+	ZERO // 0
 } Command;
 
 // Forward references. Silly C++!
@@ -57,8 +58,10 @@ class Node {
  */
 class CommandNode : public Node {
     public:
+		int counter;
         Command command;
         CommandNode(char c) {
+			counter=1;
             switch(c) {
                 case '+': command = INCREMENT; break;
                 case '-': command = DECREMENT; break;
@@ -66,6 +69,20 @@ class CommandNode : public Node {
                 case '>': command = SHIFT_RIGHT; break;
                 case ',': command = INPUT; break;
                 case '.': command = OUTPUT; break;
+				case 0: command = ZERO; break;
+            }
+        }
+
+		CommandNode(char c, int x) {
+			counter = x;	
+            switch(c) {
+                case '+': command = INCREMENT; break;
+                case '-': command = DECREMENT; break;
+                case '<': command = SHIFT_LEFT; break;
+                case '>': command = SHIFT_RIGHT; break;
+                case ',': command = INPUT; break;
+                case '.': command = OUTPUT; break;
+				case 0: command = ZERO; break;
             }
         }
         void accept (Visitor * v) {
@@ -121,6 +138,7 @@ void parse(fstream & file, Container * container) {
  //   cout << c;
  //   // How to insert a node into the container.
  //   container->children.push_back(new CommandNode(c));
+	/*
 	char c;
 	Container * temp;
 	while(file >> c){
@@ -136,6 +154,39 @@ void parse(fstream & file, Container * container) {
 			container->children.push_back(new CommandNode(c));
 		}
 	}
+	*/
+	char c;
+	int counter=1;
+	int loopCount=0;
+	Container * temp;
+	while(file >> c){
+		if(c == '['){
+			temp = new Loop;
+			container->children.push_back(temp);
+			loopCount=0;
+			parse(file, temp);
+		}
+		else if(c == ']'){
+			break;
+		}
+		else{
+			char d = (char)file.peek();
+			if(d==c){
+				loopCount++;
+				counter++;
+			}
+			else if(d==']' && loopCount==0){
+				container->children.push_back(new CommandNode(0));
+				counter=1;
+			}
+			else{
+				container->children.push_back(new CommandNode(c, counter));
+				loopCount++;
+				counter=1;
+			}
+		}
+	}
+
 
 }
 
@@ -149,14 +200,17 @@ void parse(fstream & file, Container * container) {
 class Printer : public Visitor {
     public:
         void visit(const CommandNode * leaf) {
-            switch (leaf->command) {
-                case INCREMENT:   cout << '+'; break;
-                case DECREMENT:   cout << '-'; break;
-                case SHIFT_LEFT:  cout << '<'; break;
-                case SHIFT_RIGHT: cout << '>'; break;
-                case INPUT:       cout << ','; break;
-                case OUTPUT:      cout << '.'; break;
-            }
+			for(int i=0; i<leaf->counter;i++){
+				switch (leaf->command) {
+					case INCREMENT:   cout << '+'; break;
+					case DECREMENT:   cout << '-'; break;
+					case SHIFT_LEFT:  cout << '<'; break;
+					case SHIFT_RIGHT: cout << '>'; break;
+					case INPUT:       cout << ','; break;
+					case OUTPUT:      cout << '.'; break;
+					case ZERO:		  cout << '0'; break;
+				}
+			}
         }
         void visit(const Loop * loop) {
             cout << '[';
@@ -177,7 +231,7 @@ class Interpreter : public Visitor {
     char memory[30000];
     int pointer;
     public:
-        void visit(const CommandNode * leaf) {
+        /*void visit(const CommandNode * leaf) {
             switch (leaf->command) {
                 case INCREMENT:
 					memory[pointer]++;
@@ -197,13 +251,42 @@ class Interpreter : public Visitor {
                 case OUTPUT:
 					putchar(memory[pointer]);
                     break;
+            }*/
+		void visit(const CommandNode * leaf) {
+            switch (leaf->command) {
+                case INCREMENT:
+					memory[pointer]=memory[pointer]+leaf->counter;
+                    break;
+                case DECREMENT:
+					memory[pointer]=memory[pointer]-leaf->counter;
+                    break;
+                case SHIFT_LEFT:
+					pointer=pointer-leaf->counter;
+                    break;
+                case SHIFT_RIGHT:
+					pointer=pointer+leaf->counter;
+                    break;
+                case INPUT:
+					for(int i=0; i<leaf->counter;i++){
+						memory[pointer]=getchar();
+					}
+                    break;
+                case OUTPUT:
+					for(int i=0; i<leaf->counter;i++){
+						putchar(memory[pointer]);
+					}
+                    break;
+				case ZERO:
+					memory[pointer]=0;
+					break;
             }
         }
         void visit(const Loop * loop) {
+			
 			while(memory[pointer] != 0){
-            for (vector<Node*>::const_iterator it = loop->children.begin(); it != loop->children.end(); ++it) {
-                (*it)->accept(this);
-            }
+				for (vector<Node*>::const_iterator it = loop->children.begin(); it != loop->children.end(); ++it) {
+					(*it)->accept(this);
+				}
 			}
 				
 			
@@ -232,7 +315,7 @@ int main(int argc, char *argv[]) {
         for (int i = 1; i < argc; i++) {
             file.open(argv[i], fstream::in);
             parse(file, & program);
-//            program.accept(&printer);
+            //program.accept(&printer);
             program.accept(&interpreter);
             file.close();
         }
