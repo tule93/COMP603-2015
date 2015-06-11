@@ -175,7 +175,7 @@ void parse(fstream & file, Container * container) {
 				loopCount++;
 				counter++;
 			}
-			else if(d==']' && loopCount==0){
+			else if(d==']' && loopCount==0 && (c=='-' || c=='+')){
 				container->children.push_back(new CommandNode(0));
 				counter=1;
 			}
